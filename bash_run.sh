@@ -17,9 +17,15 @@ source venv/Scripts/activate
 echo "Installing dependencies from requirements.txt..."
 pip install -r requirements.txt
 
-# 3. Download weights
-echo "Downloading weights..."
-python download_weights.py
+
+
+# 3. Download weights if not already present
+if [ ! -f "model-weights/yolov3-wider_16000.weights" ]; then
+    echo "Downloading weights..."
+    python download_weights.py
+else
+    echo "Weights already exist. Skipping download."
+fi
 
 # 4. Run main app
 echo "Running yoloface_app/main.py..."

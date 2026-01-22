@@ -14,9 +14,15 @@ $venvActivate = Join-Path $WORKSPACE "venv\Scripts\Activate.ps1"
 Write-Host "Installing dependencies from requirements.txt..."
 pip install -r requirements.txt
 
-# 4. Download weights
-Write-Host "Downloading weights..."
-python download_weights.py
+
+
+# 4. Download weights if not already present
+if (-not (Test-Path "model-weights/yolov3-wider_16000.weights")) {
+    Write-Host "Downloading weights..."
+    python download_weights.py
+} else {
+    Write-Host "Weights already exist. Skipping download."
+}
 
 # 5. Run main app
 Write-Host "Running yoloface_app/main.py..."
