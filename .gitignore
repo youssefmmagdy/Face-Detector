@@ -32,12 +32,13 @@ __pycache__/
 .vscode/
 
 # Virtualenv
+venv/
 .venv/
+
 
 # Temp files
 temp/
-samples/*.mp4
-samples/
+
 *_kmeans.py
 
 # The weights of the trained models
