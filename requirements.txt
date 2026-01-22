@@ -1,3 +1,5 @@
+# To download YOLO weights, run:
+# python scripts/download_weights.py
 numpy
 tensorflow>=1.12.1
 opencv-python
