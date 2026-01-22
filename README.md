@@ -1,90 +1,174 @@
-# YOLOFace
+# 🎯 Face Detector System
 
-# Deep learning based Face detection using the YOLOv3 algorithm
+A real-time face detection and tracking system built with **YOLOv3-face**, capable of detecting and capturing distinct faces from images, videos, or live webcam feeds.
 
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-green.svg)
+![PyQt5](https://img.shields.io/badge/PyQt5-5.x-orange.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-## Getting started
+---
 
-The YOLOv3 (You Only Look Once) is a state-of-the-art, real-time object detection algorithm. The published model recognizes 80 different objects in images and videos. For more details, you can refer to this [paper](https://pjreddie.com/media/files/papers/YOLOv3.pdf).
+## 📖 Overview
 
-## YOLOv3's architecture
+This project implements a robust face detection system that can:
 
-![Imgur](assets/yolo-architecture.png)
+- **Detect faces** in real-time using YOLOv3 deep learning model
+- **Track distinct faces** using IOU-based position tracking
+- **Capture high-quality samples** of each unique face detected
+- **Save distinct face images** automatically to disk
+- Process **images**, **videos**, and **live webcam** feeds
 
-Credit: [Ayoosh Kathuria](https://towardsdatascience.com/yolo-v3-object-detection-53fb7d3bfe6b)
+Built on top of the [YOLOFace](https://github.com/sthanhng/yoloface) repository by **sthanhng**, this system extends the original implementation with face tracking, quality scoring, and a modern desktop GUI.
 
-## OpenCV Deep Neural Networks (dnn module)
+---
 
-OpenCV `dnn` module supports running inference on pre-trained deep learning models from popular frameworks such as TensorFlow, Torch, Darknet and Caffe.
+## 🚀 Applications
 
-## Prerequisites
+| Application | Description |
+|-------------|-------------|
+| 📋 **Attendance Monitoring** | Automatically capture and log faces for attendance tracking in schools, offices, or events |
+| 🔐 **Security Systems** | Monitor and record distinct individuals entering restricted areas |
+| 👥 **Crowd Analysis** | Count and track unique faces in crowded environments |
+| 🏢 **Access Control** | Identify and log visitors in buildings or facilities |
+| 📊 **Customer Analytics** | Track unique customers in retail environments |
 
-* Tensorflow
-* opencv-python
-* opencv-contrib-python
-* Numpy
-* Keras
-* Matplotlib
-* Pillow
+---
 
-Development for this project will be isolated in Python virtual environment. This allows us to experiment with different versions of dependencies.
+## ✨ Features
 
-There are many ways to install `virtual environment (virtualenv)`, see the [Python Virtual Environments: A Primer](https://realpython.com/python-virtual-environments-a-primer/) guide for different platforms, but here are a couple:
+- 🎯 **Real-time Detection** - Fast face detection using YOLOv3 architecture
+- 🔍 **Distinct Face Tracking** - Tracks faces across frames to avoid duplicates
+- 📸 **Quality Scoring** - Automatically selects the best quality image of each face
+- 💾 **Auto-save** - Saves detected faces to disk immediately
+- 🖥️ **Desktop GUI** - Modern PyQt5 interface for easy use
+- ⚙️ **Configurable Settings** - Adjust tolerance, skip frames, and more
+- 📹 **Multiple Sources** - Support for images, videos, and webcam
 
-- For Ubuntu
+---
+
+## 🛠️ Installation
+
+### Prerequisites
+
+- Python 3.8 or higher
+- pip package manager
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/youssefmmagdy/Face-Detector.git
+   cd Face-Detector
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Download model weights**
+   
+   Download the YOLOv3-face weights from [here](https://drive.google.com/file/d/1xYasjU52whXMLT5MtF7RCPQkV66993oR/view) and place it in the `model-weights/` folder.
+
+---
+
+## 📦 Usage
+
+### Desktop Application (GUI)
+
+Launch the modern desktop interface:
+
 ```bash
-$ pip install virtualenv
+python -m yoloface_app.main
 ```
 
-- For Mac
+**Features:**
+- Select source (Image / Video / Webcam)
+- Real-time preview with detection boxes
+- View and manage detected faces
+- Configurable settings sidebar
+
+### Command Line Interface
+
+**Process an image:**
 ```bash
-$ pip install --upgrade virtualenv
+python yoloface.py --image samples/your_image.jpg --output-dir outputs/
 ```
 
-Create a Python 3.6 virtual environment for this project and activate the virtualenv:
+**Process a video:**
 ```bash
-$ virtualenv -p python3.6 yoloface
-$ source ./yoloface/bin/activate
+python yoloface.py --video samples/your_video.mp4 --output-dir outputs/
 ```
 
-Next, install the dependencies for the this project:
+**Use webcam:**
 ```bash
-$ pip install -r requirements.txt
+python yoloface.py --src 0 --output-dir outputs/
 ```
 
-## Usage
-
-* Clone this repository
+**Face tracking mode (captures distinct faces):**
 ```bash
-$ git clone https://github.com/sthanhng/yoloface
+python yoloface_tracker.py --video samples/your_video.mp4 --output-dir outputs/
 ```
 
-* For face detection, you should download the pre-trained YOLOv3 weights file which trained on the [WIDER FACE: A Face Detection Benchmark](http://mmlab.ie.cuhk.edu.hk/projects/WIDERFace/index.html) dataset from this [link](https://drive.google.com/file/d/1xYasjU52whXMLT5MtF7RCPQkV66993oR/view?usp=sharing) and place it in the `model-weights/` directory.
+---
 
-* Run the following command:
+## 📁 Project Structure
 
->**image input**
-```bash
-$ python yoloface.py --image samples/outside_000001.jpg --output-dir outputs/
+```
+Face-Detector/
+├── yoloface_app/           # Desktop GUI application
+│   ├── core/               # Detection worker and logic
+│   └── ui/                 # PyQt5 UI components
+├── cfg/                    # YOLO configuration files
+│   ├── yolov3-face.cfg     # Network architecture
+│   └── face.names          # Class names
+├── model-weights/          # Model weights (download required)
+├── samples/                # Sample images/videos
+├── outputs/                # Detection outputs
+│   └── distinct_faces/     # Saved distinct face images
+├── yoloface.py             # CLI face detection
+├── yoloface_tracker.py     # CLI face tracking
+├── utils.py                # Utility functions
+└── requirements.txt        # Python dependencies
 ```
 
->**video input**
-```bash
-$ python yoloface.py --video samples/subway.mp4 --output-dir outputs/
-```
+---
 
->**webcam**
-```bash
-$ python yoloface.py --src 1 --output-dir outputs/
-```
+## ⚙️ Configuration
 
-## Sample outputs
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `tolerance` | Face matching threshold (0-1) | 0.6 |
+| `skip_frames` | Process every Nth frame | 10 |
+| `sample_timeout` | Seconds before saving best face | 3 |
+| `save_faces` | Save distinct face images | True |
+| `save_output` | Save annotated video/image | True |
 
-![Imgur](assets/outside_000001_yoloface.jpg)
+---
 
-## License
+## 🙏 Acknowledgments
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for more details.
+- **[YOLOFace](https://github.com/sthanhng/yoloface)** by **sthanhng** - Original YOLOv3-face implementation
+- **[YOLO](https://pjreddie.com/darknet/yolo/)** by Joseph Redmon - YOLO object detection
+- **[WIDER FACE](http://shuoyang1213.me/WIDERFACE/)** - Training dataset
 
-## References
+---
 
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👤 Author
+
+**Youssef M. Magdy**
+
+- GitHub: [@youssefmmagdy](https://github.com/youssefmmagdy)
+
+---
+
+<p align="center">
+  <i>Built with ❤️ for computer vision enthusiasts</i>
+</p>
