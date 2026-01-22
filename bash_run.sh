@@ -1,8 +1,6 @@
 #!/bin/bash
-set -e
 
-WORKSPACE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$WORKSPACE"
+
 
 # 1. Create venv if not exists
 if [ ! -d "venv" ]; then

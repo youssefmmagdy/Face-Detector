@@ -1,11 +1,3 @@
-# PowerShell setup and run script for Face Detector
-
-$ErrorActionPreference = 'Stop'
-
-# 1. Set workspace to script's parent directory
-$PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$WORKSPACE = Resolve-Path (Join-Path $PSScriptRoot "..")
-Set-Location $WORKSPACE
 
 # 2. Create venv if not exists
 if (-not (Test-Path "venv")) {
