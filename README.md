@@ -47,14 +47,9 @@ Built on top of the [YOLOFace](https://github.com/sthanhng/yoloface) repository 
 
 ---
 
-## 🛠️ Installation
+## 🛠️ Installation & Usage
 
-### Prerequisites
-
-- Python 3.8 or higher
-- pip package manager
-
-### Setup
+### Quick Start
 
 1. **Clone the repository**
    ```bash
@@ -62,54 +57,22 @@ Built on top of the [YOLOFace](https://github.com/sthanhng/yoloface) repository 
    cd Face-Detector
    ```
 
-2. **Install dependencies**
+2. **Run the setup and launch script**
    ```bash
-   pip install -r requirements.txt
+   ./setup_and_run.sh
    ```
 
-3. **Download model weights**
-   
-   Download the YOLOv3-face weights from [here](https://drive.google.com/file/d/1xYasjU52whXMLT5MtF7RCPQkV66993oR/view) and place it in the `model-weights/` folder.
+   This script will automatically:
+   - Install all required dependencies
+   - Download the model weights
+   - Launch the desktop application
 
----
+### Desktop Application Features
 
-## 📦 Usage
-
-### Desktop Application (GUI)
-
-Launch the modern desktop interface:
-
-```bash
-python -m yoloface_app.main
-```
-
-**Features:**
 - Select source (Image / Video / Webcam)
 - Real-time preview with detection boxes
 - View and manage detected faces
 - Configurable settings sidebar
-
-### Command Line Interface
-
-**Process an image:**
-```bash
-python yoloface.py --image samples/your_image.jpg --output-dir outputs/
-```
-
-**Process a video:**
-```bash
-python yoloface.py --video samples/your_video.mp4 --output-dir outputs/
-```
-
-**Use webcam:**
-```bash
-python yoloface.py --src 0 --output-dir outputs/
-```
-
-**Face tracking mode (captures distinct faces):**
-```bash
-python yoloface_tracker.py --video samples/your_video.mp4 --output-dir outputs/
-```
 
 ---
 
