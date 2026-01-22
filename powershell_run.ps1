@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 # 4. Download weights
 Write-Host "Downloading weights..."
-python scripts/download_weights.py
+python download_weights.py
 
 # 5. Run main app
 Write-Host "Running yoloface_app/main.py..."

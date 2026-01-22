@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 # 3. Download weights
 echo "Downloading weights..."
-python scripts/download_weights.py
+python download_weights.py
 
 # 4. Run main app
 echo "Running yoloface_app/main.py..."
