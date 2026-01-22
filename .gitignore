@@ -32,7 +32,9 @@ __pycache__/
 .vscode/
 
 # Virtualenv
+venv/
 .venv/
+
 
 # Temp files
 temp/
