@@ -15,7 +15,12 @@ from PyQt5.QtGui import QIcon, QFont, QColor, QTextCharFormat
 from .styles import MAIN_STYLE, LOG_COLORS
 from .face_card import FaceCard, FaceCardCompact
 from .video_display import VideoDisplay, ImageDisplay
-from yoloface_app.core.detector import DetectionWorker
+
+# Handle both running as script and as module/frozen exe
+try:
+    from ..core.detector import DetectionWorker
+except ImportError:
+    from core.detector import DetectionWorker
 
 import os
 import sys
@@ -172,6 +177,7 @@ class MainWindow(QMainWindow):
         self.is_processing = False
         self.is_paused = False
         self.source_path = None
+        self.session_counter = 0  # Increments each detection session for unique IDs
         
         # Webcam preview state
         self.webcam_preview_active = False
@@ -585,6 +591,9 @@ class MainWindow(QMainWindow):
             
         # Stop webcam preview if active
         self.stop_webcam_preview()
+        
+        # Increment session counter for unique face IDs
+        self.session_counter += 1
             
         self.is_processing = True
         self.btn_start.setEnabled(False)
@@ -664,25 +673,30 @@ class MainWindow(QMainWindow):
         
     def on_face_detected(self, face_id, face_image, box):
         """Handle face detection event"""
-        # Update existing face card if exists
-        if face_id in self.face_cards:
-            self.face_cards[face_id].update_image(face_image)
+        # Update existing face card if exists (use unique ID)
+        unique_face_id = f"{self.session_counter}_{face_id}"
+        if unique_face_id in self.face_cards:
+            self.face_cards[unique_face_id].update_image(face_image)
             
     def on_new_face(self, face_id, face_image):
         """Handle new face detected"""
+        # Create unique face ID with session prefix
+        unique_face_id = f"{self.session_counter}_{face_id}"
+        
         # Remove empty label if present
         if self.faces_empty_label.isVisible():
             self.faces_empty_label.hide()
             
         # Create new face card (compact, one per row)
-        card = FaceCardCompact(face_id)
+        card = FaceCardCompact(face_id)  # Display original ID
+        card.unique_id = unique_face_id  # Store unique ID for tracking
         card.update_image(face_image)
-        card.delete_requested.connect(self.delete_face)
+        card.delete_requested.connect(lambda fid: self.delete_face_by_unique_id(unique_face_id))
         
         # Add to list (insert before stretch)
         self.faces_list.insertWidget(self.faces_list.count() - 1, card)
         
-        self.face_cards[face_id] = card
+        self.face_cards[unique_face_id] = card
         card.animate_entrance()
         
         self.btn_clear_faces.setEnabled(True)
@@ -690,13 +704,15 @@ class MainWindow(QMainWindow):
         
     def on_sample_added(self, face_id, sample_count):
         """Handle sample added to face"""
-        if face_id in self.face_cards:
-            self.face_cards[face_id].update_samples(sample_count)
+        unique_face_id = f"{self.session_counter}_{face_id}"
+        if unique_face_id in self.face_cards:
+            self.face_cards[unique_face_id].update_samples(sample_count)
             
     def on_face_saved(self, face_id, file_path):
         """Handle face saved to file"""
-        if face_id in self.face_cards:
-            self.face_cards[face_id].mark_saved(file_path)
+        unique_face_id = f"{self.session_counter}_{face_id}"
+        if unique_face_id in self.face_cards:
+            self.face_cards[unique_face_id].mark_saved(file_path)
         self.log_message(f"Face {face_id} saved: {os.path.basename(file_path)}", "success")
         
     def on_progress_update(self, progress):
@@ -722,11 +738,11 @@ class MainWindow(QMainWindow):
         self.log_message(f"Error: {error_msg}", "error")
         QMessageBox.critical(self, "Error", error_msg)
         self.stop_detection()
-        
-    def delete_face(self, face_id):
-        """Delete a face card and its saved file from disk"""
-        if face_id in self.face_cards:
-            card = self.face_cards.pop(face_id)
+    
+    def delete_face_by_unique_id(self, unique_face_id):
+        """Delete a face card by its unique ID and its saved file from disk"""
+        if unique_face_id in self.face_cards:
+            card = self.face_cards.pop(unique_face_id)
             
             # Delete the saved file from disk if it exists
             file_path = card.get_file_path()
@@ -745,12 +761,33 @@ class MainWindow(QMainWindow):
                 self.faces_empty_label.show()
                 self.btn_clear_faces.setEnabled(False)
                 
-            self.log_message(f"Removed face {face_id}", "warning")
+            self.log_message(f"Removed face {unique_face_id}", "warning")
+        
+    def delete_face(self, face_id):
+        """Delete a face card and its saved file from disk (legacy, uses current session)"""
+        unique_face_id = f"{self.session_counter}_{face_id}"
+        self.delete_face_by_unique_id(unique_face_id)
+    
+    def remove_face_from_ui(self, face_id):
+        """Remove a face card from UI only (keeps file on disk)"""
+        if face_id in self.face_cards:
+            card = self.face_cards.pop(face_id)
+            self.faces_list.removeWidget(card)
+            card.deleteLater()
+            
+            # Show empty label if no faces left
+            if not self.face_cards:
+                self.faces_empty_label.show()
+                self.btn_clear_faces.setEnabled(False)
             
     def clear_faces(self):
-        """Clear all face cards"""
-        for face_id in list(self.face_cards.keys()):
-            self.delete_face(face_id)
+        """Clear all face cards from UI only (keeps files on disk)"""
+        face_ids = list(self.face_cards.keys())
+        for face_id in face_ids:
+            self.remove_face_from_ui(face_id)
+        
+        if face_ids:
+            self.log_message(f"Cleared {len(face_ids)} faces from display", "info")
             
     def closeEvent(self, event):
         """Handle window close"""

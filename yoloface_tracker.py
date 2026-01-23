@@ -10,6 +10,7 @@ import face_recognition
 import mss
 import time
 import mss.tools
+from datetime import datetime
     
 ##########
 parser = argparse.ArgumentParser()
@@ -70,11 +71,20 @@ if not os.path.exists(args.output_dir):
 else:
     print('==> Skipping create the {} directory...'.format(args.output_dir))
 
-# Create faces output directory
-faces_dir = os.path.join(args.output_dir, 'distinct_faces')
-if not os.path.exists(faces_dir):
-    os.makedirs(faces_dir)
-    print(f'==> Created faces directory: {faces_dir}')
+# Create faces output directory with session-based folder (datetime + source type)
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+if args.image:
+    source_type = 'image'
+elif args.video:
+    source_type = 'video'
+elif args.screen:
+    source_type = 'screen'
+else:
+    source_type = 'webcam'
+session_folder_name = f"{source_type}_{timestamp}"
+faces_dir = os.path.join(args.output_dir, 'distinct_faces', session_folder_name)
+os.makedirs(faces_dir, exist_ok=True)
+print(f'==> Created faces directory: {faces_dir}')
 
 # Load the network
 net = cv2.dnn.readNetFromDarknet(args.model_cfg, args.model_weights)
@@ -408,7 +418,7 @@ def _main():
                     if face_img.size > 0:
                         if args.image:
                             # For single image, save immediately
-                            face_path = os.path.join(args.output_dir, 'distinct_faces', 
+                            face_path = os.path.join(faces_dir, 
                                                     f'face_id_{face_id:03d}.jpg')
                             try:
                                 success = cv2.imwrite(face_path, face_img)
@@ -464,7 +474,7 @@ def _main():
                         # We've collected enough samples, save the best one
                         best_img, best_score, best_frame = face_tracker.get_best_face_image(face_id)
                         if best_img is not None:
-                            face_path = os.path.join(args.output_dir, 'distinct_faces', 
+                            face_path = os.path.join(faces_dir, 
                                                     f'face_id_{face_id:03d}_best.jpg')
                             try:
                                 success = cv2.imwrite(face_path, best_img)
@@ -500,7 +510,7 @@ def _main():
         for face_id in faces_to_save:
             best_img, best_score, best_frame = face_tracker.get_best_face_image(face_id)
             if best_img is not None:
-                face_path = os.path.join(args.output_dir, 'distinct_faces', 
+                face_path = os.path.join(faces_dir, 
                                         f'face_id_{face_id:03d}_best.jpg')
                 try:
                     success = cv2.imwrite(face_path, best_img)
@@ -554,7 +564,7 @@ def _main():
                 best_result = face_tracker.get_best_face_image(face_id)
                 if best_result is not None:
                     best_img, best_score, best_frame = best_result
-                    face_path = os.path.join(args.output_dir, 'distinct_faces', 
+                    face_path = os.path.join(faces_dir, 
                                             f'face_id_{face_id:03d}_best.jpg')
                     try:
                         success = cv2.imwrite(face_path, best_img)

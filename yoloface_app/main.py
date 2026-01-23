@@ -13,7 +13,11 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
-from ui.main_window import MainWindow
+# Handle both running as script and as module/frozen exe
+try:
+    from .ui.main_window import MainWindow
+except ImportError:
+    from ui.main_window import MainWindow
 
 
 def main():

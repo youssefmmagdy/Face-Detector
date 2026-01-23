@@ -8,11 +8,16 @@ import cv2
 import numpy as np
 from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 import time
+from datetime import datetime
 
 # Add parent directory for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from utils import get_outputs_names, post_process, IMG_WIDTH, IMG_HEIGHT, CONF_THRESHOLD, NMS_THRESHOLD
+# Handle both running as script and as module/frozen exe
+try:
+    from ..utils import get_outputs_names, post_process, IMG_WIDTH, IMG_HEIGHT, CONF_THRESHOLD, NMS_THRESHOLD
+except ImportError:
+    from utils import get_outputs_names, post_process, IMG_WIDTH, IMG_HEIGHT, CONF_THRESHOLD, NMS_THRESHOLD
 
 
 class FaceTrackerCore:
@@ -141,8 +146,14 @@ class DetectionWorker(QThread):
     def load_model(self):
         """Load the YOLO model"""
         try:
-            # Get absolute paths
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            # Get absolute paths - handle both normal and PyInstaller frozen state
+            if getattr(sys, 'frozen', False):
+                # Running as PyInstaller bundle
+                base_dir = sys._MEIPASS
+            else:
+                # Running as normal Python script
+                base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            
             cfg_path = os.path.join(base_dir, 'cfg', 'yolov3-face.cfg')
             weights_path = os.path.join(base_dir, 'model-weights', 'yolov3-wider_16000.weights')
             
@@ -211,12 +222,11 @@ class DetectionWorker(QThread):
             self.error.emit("Failed to open source")
             return
         
-        # Setup output directory
-        faces_dir = os.path.join(self.output_dir, 'distinct_faces')
-        if os.path.exists(faces_dir):
-            print(f"==> Skipping create the {self.output_dir}/ directory...")
-        else:
-            os.makedirs(faces_dir, exist_ok=True)
+        # Setup output directory with session-based folder (datetime + source type)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        session_folder_name = f"{self.source_type}_{timestamp}"
+        faces_dir = os.path.join(self.output_dir, 'distinct_faces', session_folder_name)
+        os.makedirs(faces_dir, exist_ok=True)
         print(f"==> Faces directory: {faces_dir}")
         
         # Video writer setup

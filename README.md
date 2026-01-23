@@ -49,6 +49,7 @@ Built on top of the [YOLOFace](https://github.com/sthanhng/yoloface) repository 
 
 ## 🛠️ Installation & Usage
 
+
 ### Quick Start
 
 1. **Clone the repository**
@@ -66,6 +67,20 @@ Built on top of the [YOLOFace](https://github.com/sthanhng/yoloface) repository 
    - Install all required dependencies
    - Download the model weights
    - Launch the desktop application
+
+
+
+### Build Standalone Executable (Windows)
+
+To create a standalone .exe file (no terminal window), run:
+
+```bash
+pyinstaller --onefile --noconsole --name yoloface_app --add-data "cfg;cfg" --add-data "model-weights;model-weights" yoloface_app/main.py --noconfirm
+```
+
+The executable will be created in the `dist/` folder as `yoloface_app.exe`.
+
+---
 
 ### Desktop Application Features
 
