@@ -8,6 +8,47 @@ from PyQt5.QtCore import Qt, QPropertyAnimation, QSize, QTimer, pyqtProperty, QE
 from PyQt5.QtGui import QPixmap, QImage
 import numpy as np
 
+# Screen size utilities for dynamic scaling
+BASE_SCREEN_WIDTH = 1920
+BASE_SCREEN_HEIGHT = 1200
+
+def get_screen_size():
+    """Return the width and height of the primary screen."""
+    try:
+        from PyQt5.QtWidgets import QApplication
+        app = QApplication.instance()
+        if app is None:
+            # Create a temporary QApplication if none exists
+            app = QApplication([])
+        
+        screen = app.primaryScreen()
+        if screen is None:
+            # Fallback to default screen size
+            return BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT
+        
+        geometry = screen.geometry()
+        return geometry.width(), geometry.height()
+    except:
+        # Fallback if QApplication is not available
+        return BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT
+
+def scale_width_percent(percent):
+    """Scale a width value based on percentage of screen width."""
+    current_width, _ = get_screen_size()
+    return int((percent / 100.0) * current_width)
+
+def scale_height_percent(percent):
+    """Scale a height value based on percentage of screen height."""
+    _, current_height = get_screen_size()
+    return int((percent / 100.0) * current_height)
+
+def scale_dimension_percent(percent):
+    """Scale a dimension value based on percentage of average screen dimensions."""
+    current_width, current_height = get_screen_size()
+    avg_dimension = (current_width + current_height) / 2
+    base_avg = (BASE_SCREEN_WIDTH + BASE_SCREEN_HEIGHT) / 2
+    return int((percent / 100.0) * avg_dimension)
+
 
 class FaceCard(QFrame):
     """Widget displaying a detected face with info"""
@@ -30,8 +71,8 @@ class FaceCard(QFrame):
         # Face image
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setMinimumSize(100, 100)
-        self.image_label.setMaximumSize(150, 150)
+        self.image_label.setMinimumSize(scale_width_percent(5.21), scale_height_percent(8.33))
+        self.image_label.setMaximumSize(scale_width_percent(7.81), scale_height_percent(12.5))
         self.image_label.setScaledContents(True)
         
         # Convert numpy array to QPixmap
@@ -59,7 +100,7 @@ class FaceCard(QFrame):
         
         # Delete button
         self.delete_btn = QPushButton("×")
-        self.delete_btn.setFixedSize(24, 24)
+        self.delete_btn.setFixedSize(scale_dimension_percent(1.54), scale_dimension_percent(1.54))
         self.delete_btn.setStyleSheet("""
             QPushButton {
                 background-color: #f38ba8;
@@ -85,7 +126,7 @@ class FaceCard(QFrame):
         layout.addWidget(self.frame_label)
         layout.addWidget(self.quality_label)
         
-        self.setFixedSize(170, 220)
+        self.setFixedSize(scale_width_percent(8.85), scale_height_percent(18.33))
         
     def set_image(self, face_image):
         """Set the face image from numpy array"""
@@ -107,15 +148,15 @@ class FaceCard(QFrame):
     def animate_entrance(self):
         """Animate the card appearing (scale up effect)"""
         # Start small
-        self.setFixedSize(50, 65)
+        self.setFixedSize(scale_width_percent(2.6), scale_height_percent(5.42))
         
         # Animate to full size
         self.animation = QTimer(self)
         self.animation.timeout.connect(self._grow_step)
-        self._target_width = 170
-        self._target_height = 220
-        self._current_width = 50
-        self._current_height = 65
+        self._target_width = scale_width_percent(8.85)
+        self._target_height = scale_height_percent(18.33)
+        self._current_width = scale_width_percent(2.6)
+        self._current_height = scale_height_percent(5.42)
         self.animation.start(16)  # ~60fps
         
     def _grow_step(self):
@@ -128,7 +169,7 @@ class FaceCard(QFrame):
         
         if self._current_width >= self._target_width and self._current_height >= self._target_height:
             self.animation.stop()
-            self.setFixedSize(170, 220)
+            self.setFixedSize(scale_width_percent(8.85), scale_height_percent(18.33))
 
 
 class FaceCardCompact(QFrame):
@@ -154,7 +195,7 @@ class FaceCardCompact(QFrame):
         # Face image
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setFixedSize(60, 60)
+        self.image_label.setFixedSize(scale_dimension_percent(3.85), scale_dimension_percent(3.85))
         self.image_label.setScaledContents(True)
         self.image_label.setStyleSheet("border-radius: 8px; background-color: #313244;")
         
@@ -178,7 +219,7 @@ class FaceCardCompact(QFrame):
         
         # Delete button
         self.delete_btn = QPushButton("×")
-        self.delete_btn.setFixedSize(32, 32)
+        self.delete_btn.setFixedSize(scale_dimension_percent(2.05), scale_dimension_percent(2.05))
         self.delete_btn.setStyleSheet("""
             QPushButton {
                 background-color: #45475a;
@@ -202,8 +243,8 @@ class FaceCardCompact(QFrame):
         layout.addLayout(info_layout, 1)
         layout.addWidget(self.delete_btn, 0, Qt.AlignVCenter)
         
-        self.setFixedHeight(90)
-        self.setMinimumWidth(200)
+        self.setFixedHeight(scale_height_percent(7.5))
+        self.setMinimumWidth(scale_width_percent(10.42))
         
     def update_image(self, face_image):
         """Update the face image"""

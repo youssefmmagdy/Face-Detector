@@ -9,6 +9,47 @@ from PyQt5.QtGui import QPixmap, QImage, QPainter, QColor, QFont
 import numpy as np
 import cv2
 
+# Screen size utilities for dynamic scaling
+BASE_SCREEN_WIDTH = 1920
+BASE_SCREEN_HEIGHT = 1200
+
+def get_screen_size():
+    """Return the width and height of the primary screen."""
+    try:
+        from PyQt5.QtWidgets import QApplication
+        app = QApplication.instance()
+        if app is None:
+            # Create a temporary QApplication if none exists
+            app = QApplication([])
+        
+        screen = app.primaryScreen()
+        if screen is None:
+            # Fallback to default screen size
+            return BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT
+        
+        geometry = screen.geometry()
+        return geometry.width(), geometry.height()
+    except:
+        # Fallback if QApplication is not available
+        return BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT
+
+def scale_width_percent(percent):
+    """Scale a width value based on percentage of screen width."""
+    current_width, _ = get_screen_size()
+    return int((percent / 100.0) * current_width)
+
+def scale_height_percent(percent):
+    """Scale a height value based on percentage of screen height."""
+    _, current_height = get_screen_size()
+    return int((percent / 100.0) * current_height)
+
+def scale_dimension_percent(percent):
+    """Scale a dimension value based on percentage of average screen dimensions."""
+    current_width, current_height = get_screen_size()
+    avg_dimension = (current_width + current_height) / 2
+    base_avg = (BASE_SCREEN_WIDTH + BASE_SCREEN_HEIGHT) / 2
+    return int((percent / 100.0) * avg_dimension)
+
 
 class VideoDisplay(QFrame):
     """Widget for displaying video feed with detection overlays"""
@@ -16,7 +57,7 @@ class VideoDisplay(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("videoFrame")
-        self.setMinimumSize(400, 200)
+        self.setMinimumSize(scale_width_percent(20.83), scale_height_percent(16.67))
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
         self.setup_ui()
@@ -32,7 +73,7 @@ class VideoDisplay(QFrame):
         # Video display label
         self.video_label = QLabel()
         self.video_label.setAlignment(Qt.AlignCenter)
-        self.video_label.setMinimumSize(200, 150)
+        self.video_label.setMinimumSize(scale_width_percent(10.42), scale_height_percent(12.5))
         self.video_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.video_label.setStyleSheet("""
             QLabel {
@@ -59,7 +100,7 @@ class VideoDisplay(QFrame):
         controls_layout.setContentsMargins(10, 10, 10, 10)
         
         self.fullscreen_btn = QPushButton("⛶")
-        self.fullscreen_btn.setFixedSize(36, 36)
+        self.fullscreen_btn.setFixedSize(scale_dimension_percent(2.31), scale_dimension_percent(2.31))
         self.fullscreen_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgba(30, 30, 46, 0.8);
@@ -175,7 +216,7 @@ class ImageDisplay(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("videoFrame")
-        self.setMinimumSize(400, 200)
+        self.setMinimumSize(scale_width_percent(20.83), scale_height_percent(16.67))
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
         self.setup_ui()

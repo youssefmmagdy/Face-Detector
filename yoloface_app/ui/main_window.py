@@ -28,6 +28,47 @@ import sys
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+# Screen size utilities for dynamic scaling
+BASE_SCREEN_WIDTH = 1920
+BASE_SCREEN_HEIGHT = 1200
+
+def get_screen_size():
+    """Return the width and height of the primary screen."""
+    try:
+        from PyQt5.QtWidgets import QApplication
+        app = QApplication.instance()
+        if app is None:
+            # Create a temporary QApplication if none exists
+            app = QApplication([])
+        
+        screen = app.primaryScreen()
+        if screen is None:
+            # Fallback to default screen size
+            return BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT
+        
+        geometry = screen.geometry()
+        return geometry.width(), geometry.height()
+    except:
+        # Fallback if QApplication is not available
+        return BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT
+
+def scale_width_percent(percent):
+    """Scale a width value based on percentage of screen width."""
+    current_width, _ = get_screen_size()
+    return int((percent / 100.0) * current_width)
+
+def scale_height_percent(percent):
+    """Scale a height value based on percentage of screen height."""
+    _, current_height = get_screen_size()
+    return int((percent / 100.0) * current_height)
+
+def scale_dimension_percent(percent):
+    """Scale a dimension value based on percentage of average screen dimensions."""
+    current_width, current_height = get_screen_size()
+    avg_dimension = (current_width + current_height) / 2
+    base_avg = (BASE_SCREEN_WIDTH + BASE_SCREEN_HEIGHT) / 2
+    return int((percent / 100.0) * avg_dimension)
+
 
 class SettingsSidebar(QFrame):
     """Overlay settings sidebar"""
@@ -35,7 +76,7 @@ class SettingsSidebar(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("settingsSidebar")
-        self.setFixedWidth(300)
+        self.setFixedWidth(scale_width_percent(15.625))
         self.setStyleSheet("""
             QFrame#settingsSidebar {
                 background-color: rgba(30, 30, 46, 0.98);
@@ -54,15 +95,15 @@ class SettingsSidebar(QFrame):
         
     def setup_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(16)
+        layout.setContentsMargins(scale_dimension_percent(1.03), scale_dimension_percent(1.03), scale_dimension_percent(1.03), scale_dimension_percent(1.03))
+        layout.setSpacing(scale_dimension_percent(1.03))
         
         # Header with close button
         header = QHBoxLayout()
         title = QLabel("⚙️ Settings")
         title.setStyleSheet("font-size: 18px; font-weight: bold; color: #cdd6f4;")
         self.close_btn = QPushButton("✕")
-        self.close_btn.setFixedSize(32, 32)
+        self.close_btn.setFixedSize(scale_dimension_percent(2.05), scale_dimension_percent(2.05))
         self.close_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -167,8 +208,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("YOLOFace Tracker")
-        self.setMinimumSize(1280, 800)
+        self.setMinimumSize(scale_width_percent(66.67), scale_height_percent(66.67))
         self.setStyleSheet(MAIN_STYLE)
+        
+        # Remove window frame to hide minimize/maximize/close buttons
+        self.setWindowFlags(Qt.FramelessWindowHint)
         
         # State
         self.detection_worker = None
@@ -183,7 +227,7 @@ class MainWindow(QMainWindow):
         self.webcam_preview_active = False
         self.preview_cap = None
         self.preview_timer = None
-        
+        self.showFullScreen()
         self.setup_ui()
         self.connect_signals()
         
@@ -202,14 +246,14 @@ class MainWindow(QMainWindow):
         # === LEFT SECTION - Main content (2/3 width) ===
         left_section = QWidget()
         left_layout = QVBoxLayout(left_section)
-        left_layout.setContentsMargins(16, 16, 8, 16)
-        left_layout.setSpacing(12)
+        left_layout.setContentsMargins(scale_dimension_percent(1.03), scale_dimension_percent(1.03), scale_dimension_percent(0.51), scale_dimension_percent(1.03))
+        left_layout.setSpacing(scale_dimension_percent(0.77))
         
         # -- Top bar with source buttons and settings toggle --
         top_bar = QFrame()
         top_bar.setObjectName("sourceFrame")
         top_bar_layout = QHBoxLayout(top_bar)
-        top_bar_layout.setContentsMargins(16, 12, 16, 12)
+        top_bar_layout.setContentsMargins(scale_dimension_percent(1.03), scale_dimension_percent(0.77), scale_dimension_percent(1.03), scale_dimension_percent(0.77))
         
         source_label = QLabel("Source:")
         source_label.setStyleSheet("color: #cdd6f4; font-weight: bold; font-size: 14px;")
@@ -220,8 +264,8 @@ class MainWindow(QMainWindow):
         self.btn_webcam = QPushButton("📹  Webcam")
         
         for btn in [self.btn_image, self.btn_video, self.btn_webcam]:
-            btn.setMinimumHeight(40)
-            btn.setMinimumWidth(120)
+            btn.setMinimumHeight(scale_height_percent(3.33))
+            btn.setMinimumWidth(scale_width_percent(6.25))
             btn.setCursor(Qt.PointingHandCursor)
             top_bar_layout.addWidget(btn)
             
@@ -229,7 +273,7 @@ class MainWindow(QMainWindow):
         
         # Settings toggle button
         self.btn_settings = QPushButton("⚙️  Settings")
-        self.btn_settings.setMinimumHeight(40)
+        self.btn_settings.setMinimumHeight(scale_height_percent(3.33))
         self.btn_settings.setCursor(Qt.PointingHandCursor)
         top_bar_layout.addWidget(self.btn_settings)
         
@@ -252,24 +296,24 @@ class MainWindow(QMainWindow):
         controls_frame = QFrame()
         controls_frame.setObjectName("controlsFrame")
         controls_layout = QHBoxLayout(controls_frame)
-        controls_layout.setContentsMargins(12, 10, 12, 10)
-        controls_layout.setSpacing(10)
+        controls_layout.setContentsMargins(scale_dimension_percent(0.77), scale_dimension_percent(0.64), scale_dimension_percent(0.77), scale_dimension_percent(0.64))
+        controls_layout.setSpacing(scale_dimension_percent(0.64))
         
         self.btn_start = QPushButton("▶ Start")
         self.btn_start.setObjectName("startButton")
-        self.btn_start.setFixedHeight(36)
-        self.btn_start.setFixedWidth(100)
+        self.btn_start.setFixedHeight(scale_height_percent(3))
+        self.btn_start.setFixedWidth(scale_width_percent(5.21))
         self.btn_start.setEnabled(False)
         
         self.btn_pause = QPushButton("⏸ Pause")
-        self.btn_pause.setFixedHeight(36)
-        self.btn_pause.setFixedWidth(100)
+        self.btn_pause.setFixedHeight(scale_height_percent(3))
+        self.btn_pause.setFixedWidth(scale_width_percent(5.21))
         self.btn_pause.setEnabled(False)
         
         self.btn_stop = QPushButton("⏹ Stop")
         self.btn_stop.setObjectName("stopButton")
-        self.btn_stop.setFixedHeight(36)
-        self.btn_stop.setFixedWidth(100)
+        self.btn_stop.setFixedHeight(scale_height_percent(3))
+        self.btn_stop.setFixedWidth(scale_width_percent(5.21))
         self.btn_stop.setEnabled(False)
         
         for btn in [self.btn_start, self.btn_pause, self.btn_stop]:
@@ -277,7 +321,7 @@ class MainWindow(QMainWindow):
             controls_layout.addWidget(btn)
             
         # Spacer
-        controls_layout.addSpacing(20)
+        controls_layout.addSpacing(scale_dimension_percent(1.28))
         
         # Stats label
         self.stats_label = QLabel("")
@@ -288,8 +332,8 @@ class MainWindow(QMainWindow):
         
         # Progress bar
         self.progress_bar = QProgressBar()
-        self.progress_bar.setFixedWidth(200)
-        self.progress_bar.setFixedHeight(18)
+        self.progress_bar.setFixedWidth(scale_width_percent(10.42))
+        self.progress_bar.setFixedHeight(scale_height_percent(1.5))
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(True)
         controls_layout.addWidget(self.progress_bar)
@@ -298,20 +342,20 @@ class MainWindow(QMainWindow):
         
         # -- Log output --
         log_group = QGroupBox("Log Output")
-        log_group.setMaximumHeight(180)
+        log_group.setMaximumHeight(scale_height_percent(15))
         log_layout = QVBoxLayout(log_group)
         
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
         self.log_output.setFont(QFont("Consolas", 10))
-        self.log_output.setStyleSheet("""
-            QTextEdit {
+        self.log_output.setStyleSheet(f"""
+            QTextEdit {{
                 background-color: #11111b;
                 color: #cdd6f4;
                 border: 1px solid #313244;
                 border-radius: 6px;
-                padding: 8px;
-            }
+                padding: {scale_dimension_percent(0.51)}px;
+            }}
         """)
         log_layout.addWidget(self.log_output)
         
@@ -319,11 +363,11 @@ class MainWindow(QMainWindow):
         
         # === RIGHT SECTION - Detected Faces (1/3 width) ===
         right_section = QWidget()
-        right_section.setMinimumWidth(320)
-        right_section.setMaximumWidth(400)
+        right_section.setMinimumWidth(scale_width_percent(16.67))
+        right_section.setMaximumWidth(scale_width_percent(20.83))
         right_layout = QVBoxLayout(right_section)
-        right_layout.setContentsMargins(8, 16, 16, 16)
-        right_layout.setSpacing(12)
+        right_layout.setContentsMargins(scale_dimension_percent(0.51), scale_dimension_percent(1.03), scale_dimension_percent(1.03), scale_dimension_percent(1.03))
+        right_layout.setSpacing(scale_dimension_percent(0.77))
         
         # -- Detected Faces section --
         faces_group = QGroupBox("Detected Faces")
@@ -332,34 +376,34 @@ class MainWindow(QMainWindow):
         self.faces_scroll = QScrollArea()
         self.faces_scroll.setWidgetResizable(True)
         self.faces_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.faces_scroll.setStyleSheet("""
-            QScrollArea {
+        self.faces_scroll.setStyleSheet(f"""
+            QScrollArea {{
                 background-color: transparent;
                 border: none;
-            }
-            QScrollBar:vertical {
+            }}
+            QScrollBar:vertical {{
                 background-color: #1e1e2e;
-                width: 10px;
+                width: {scale_dimension_percent(0.64)}px;
                 border-radius: 5px;
-            }
-            QScrollBar::handle:vertical {
+            }}
+            QScrollBar::handle:vertical {{
                 background-color: #45475a;
                 border-radius: 5px;
                 min-height: 20px;
-            }
+            }}
         """)
         
         self.faces_container = QWidget()
         self.faces_list = QVBoxLayout(self.faces_container)
-        self.faces_list.setSpacing(8)
-        self.faces_list.setContentsMargins(4, 4, 4, 4)
+        self.faces_list.setSpacing(scale_dimension_percent(0.51))
+        self.faces_list.setContentsMargins(scale_dimension_percent(0.26), scale_dimension_percent(0.26), scale_dimension_percent(0.26), scale_dimension_percent(0.26))
         self.faces_list.addStretch()
         self.faces_scroll.setWidget(self.faces_container)
         
         # Empty state label
         self.faces_empty_label = QLabel("No faces detected yet")
         self.faces_empty_label.setAlignment(Qt.AlignCenter)
-        self.faces_empty_label.setStyleSheet("color: #6c7086; font-size: 14px; padding: 40px;")
+        self.faces_empty_label.setStyleSheet(f"color: #6c7086; font-size: 14px; padding: {scale_dimension_percent(2.56)}px;")
         self.faces_list.insertWidget(0, self.faces_empty_label)
         
         faces_layout.addWidget(self.faces_scroll)
@@ -389,11 +433,11 @@ class MainWindow(QMainWindow):
         layout.setAlignment(Qt.AlignCenter)
         
         spinner_label = QLabel("⏳")
-        spinner_label.setStyleSheet("font-size: 48px;")
+        spinner_label.setStyleSheet(f"font-size: {scale_dimension_percent(3.08)}px;")
         spinner_label.setAlignment(Qt.AlignCenter)
         
         loading_text = QLabel("Loading...")
-        loading_text.setStyleSheet("color: #cdd6f4; font-size: 16px;")
+        loading_text.setStyleSheet(f"color: #cdd6f4; font-size: {scale_dimension_percent(1.03)}px;")
         loading_text.setAlignment(Qt.AlignCenter)
         
         layout.addWidget(spinner_label)
