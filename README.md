@@ -11,7 +11,7 @@ A real-time face detection and tracking system built with **YOLOv3-face**, capab
 
 ## 📖 Overview
 
-![ezgif.com-video-to-gif-converter.gif]
+![](ezgif.com-video-to-gif-converter.gif)
 
 This project implements a robust face detection system that can:
 
